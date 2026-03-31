@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>สร้างสลิปเงินเดือน (Payslip)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Kanit", "Sarabun", sans-serif;
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .card {
+            max-width: 750px;
+            margin: 40px auto;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 35px 45px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: linear-gradient(90deg, #3b82f6, #0ea5e9);
+        }
+
+        .logo-wrapper {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .logo-wrapper img {
+            max-height: 120px;
+            width: auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #0f172a;
+            margin: 0 0 30px;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .subsection {
+            text-align: left;
+            color: #1e293b;
+            margin: 28px 0 16px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .subsection::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #3b82f6;
+            margin-right: 10px;
+        }
+
+        .line {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: flex-end;
+        }
+
+        .field {
+            flex: 1;
+            min-width: 220px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+            color: #475569;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            height: 44px;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 0 14px;
+            font-size: 0.95rem;
+            color: #0f172a;
+            transition: all 0.2s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .btn {
+            width: 100%;
+            border: 0;
+            border-radius: 8px;
+            padding: 14px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-calc {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+            margin-top: 25px;
+        }
+
+        .btn-calc:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            box-shadow: 0 6px 14px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-pdf {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+            margin-top: 12px;
+        }
+
+        .btn-pdf:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            box-shadow: 0 6px 14px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-reset {
+            background: #f1f5f9;
+            color: #64748b;
+            margin-top: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-reset:hover {
+            background: #e2e8f0;
+            color: #334155;
+        }
+
+        .btn-add {
+            width: auto;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            margin-top: 4px;
+        }
+
+        .btn-add-earn {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .btn-add-earn:hover {
+            background: #bae6fd;
+        }
+
+        .btn-add-deduct {
+            background: #ffedd5;
+            color: #c2410c;
+        }
+
+        .btn-add-deduct:hover {
+            background: #fed7aa;
+        }
+
+        .output-box {
+            margin-top: 25px;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 12px;
+            padding: 20px;
+            color: #166534;
+            display: none;
+            font-weight: 500;
+            line-height: 1.6;
+        }
+
+        .btn-remove {
+            background: #fee2e2;
+            color: #ef4444;
+            border: none;
+            border-radius: 8px;
+            padding: 0 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: 0;
+            height: 44px;
+        }
+
+        .btn-remove:hover {
+            background: #fca5a5;
+            color: #b91c1c;
+        }
+
+        /* Styles for the PDF Template */
+        #pdfWrapper {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+            width: 800px;
+            background: white;
+            z-index: -1;
+        }
+
+        #pdfTemplate {
+            padding: 40px 50px;
+            font-family: inherit;
+            color: #1e293b;
+            background: #ffffff;
+            position: relative;
+        }
+
+        /* Modern Gradient Top Border */
+        #pdfTemplate::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 12px;
+            background: linear-gradient(90deg, #1aa3ff, #063970);
+        }
+
+        .pdf-header {
+            display: flex;
+            align-items: center;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+            margin-top: 10px;
+        }
+
+        .pdf-header-logo {
+            flex: 0 0 140px;
+            text-align: left;
+        }
+
+        .pdf-header img {
+            margin-top: -10px;
+            max-height: 120px;
+            max-width: 130px;
+            object-fit: contain;
+        }
+
+        .pdf-title-group {
+            flex: 1;
+            text-align: right;
+            /* Right aligned modern headers often look great */
+            position: relative;
+        }
+
+        .pdf-spacer {
+            display: none;
+            /* Removing spacer to allow right alignment */
+        }
+
+        .pdf-company-name {
+            margin: 0 0 8px 0;
+            line-height: 1.25;
+        }
+
+        .pdf-company-main {
+            font-size: 26px;
+            /* Adjusted to fit one line */
+            font-weight: 800;
+            color: #0d47a1;
+            display: block;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .pdf-company-sub {
+            font-size: 16px;
+            font-weight: 600;
+            color: #64748b;
+            display: block;
+        }
+
+        .pdf-slip-title {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #fff;
+            font-size: 18px;
+            font-weight: 700;
+            margin: 12px 0 0 0;
+            padding: 6px 20px;
+            border-radius: 6px;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+        }
+
+        .pdf-emp-info {
+            display: flex;
+            justify-content: space-between;
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 25px;
+            font-size: 16px;
+            color: #475569;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+            position: relative;
+        }
+
+        .pdf-emp-info::before {
+            content: '';
+            position: absolute;
+            left: -1px;
+            top: 20%;
+            height: 60%;
+            width: 4px;
+            background: #3b82f6;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .pdf-emp-info>div {
+            line-height: 1.6;
+        }
+
+        .pdf-emp-info span {
+            font-weight: 700;
+            color: #0f172a;
+            margin-left: 8px;
+        }
+
+        .pdf-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-bottom: 25px;
+            font-size: 15px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.01);
+        }
+
+        .pdf-table th {
+            background-color: #f1f5f9;
+            color: #1e293b;
+            border-bottom: 2px solid #cbd5e1;
+            padding: 14px;
+            text-align: center;
+            font-weight: 700;
+            width: 50%;
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        .pdf-table th:first-child {
+            border-right: 1px solid #e2e8f0;
+        }
+
+        .pdf-table td {
+            padding: 16px;
+            vertical-align: top;
+            color: #334155;
+            background-color: #fff;
+        }
+
+        .pdf-table tfoot td {
+            font-weight: 700;
+            background-color: #f8fafc;
+            color: #0f172a;
+            border-top: 2px solid #cbd5e1;
+        }
+
+        .pdf-row-flex {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            border-bottom: 1px dashed #e2e8f0;
+            padding-bottom: 8px;
+        }
+
+        .pdf-row-flex:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .pdf-row-flex span:last-child {
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .pdf-summary-table {
+            width: 48%;
+            border-collapse: separate;
+            border-spacing: 0;
+            text-align: center;
+            font-size: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.01);
+        }
+
+        .pdf-summary-table td {
+            padding: 14px;
+            color: #475569;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .pdf-summary-table td:first-child {
+            border-right: 1px solid #e2e8f0;
+        }
+
+        .pdf-summary-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .pdf-summary-table tr:first-child td {
+            background-color: #f8fafc;
+            color: #1e293b;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .pdf-summary-table tr:last-child td {
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 18px;
+            background-color: #fff;
+        }
+
+        .pdf-summary-table tr.total-row td {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            color: #047857;
+            font-size: 22px;
+            font-weight: 900;
+            border-top: 2px solid #86efac;
+        }
+
+        .pdf-signatures {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 60px;
+            font-size: 15px;
+            color: #64748b;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+
+<body>
+
+    <div class="card">
+        <div class="logo-wrapper">
+            <img id="companyLogo"
+                src="https://media.discordapp.net/attachments/1213023418304176149/1488469974086324284/att.VD8g6RUy1KSBFPA0SXEoRbYBkXkoK2rIzAJ24MO9OdU.jpg?ex=69cce530&is=69cb93b0&hm=94f5431267996595e4b184c7e33396a11376b6587eafe132178131604bc2514b&=&format=webp"
+                alt="Logo บริษัท">
+        </div>
+
+        <h1>ใบแจ้งเงินเดือน (Payslip)</h1>
+
+        <div class="line">
+            <div class="field"><label>ชื่อบริษัท</label><input id="companyName"
+                    value="บริษัท ซันเจียงเคมิคอลไฟเบอร์ (ประเทศไทย) จำกัด"></div>
+        </div>
+        <div class="line">
+            <div class="field"><label>รหัสพนักงาน</label><input id="empId" placeholder="เช่น EMP01"></div>
+            <div class="field"><label>ตำแหน่ง</label><input id="position" placeholder="เช่น พนักงานทั่วไป"></div>
+        </div>
+        <div class="line">
+            <div class="field"><label>ชื่อพนักงาน</label><input id="empName" placeholder="เช่น รัฐภูมิ"></div>
+            <div class="field"><label>ประจำเดือน</label><input id="period" placeholder="เช่น มีนาคม 2569"></div>
+        </div>
+
+        <div class="subsection">รายได้ (Earnings)</div>
+        <div class="line">
+            <div class="field"><label>เงินเดือน</label><input id="baseSalary" type="number" min="0" value="0"></div>
+            <div class="field"><label>ค่าล่วงเวลา (OT)</label><input id="ot" type="number" min="0" value="0"></div>
+            <div class="field"><label>ค่าอาหาร</label><input id="foodAllowance" type="number" min="0" value="0"></div>
+        </div>
+        <div id="earnExtraContainer"></div>
+        <div class="line"><button class="btn btn-add btn-add-earn" type="button" onclick="addEarnRow()">+
+                เพิ่มรายการรายได้อื่นๆ</button></div>
+
+        <div class="subsection">รายการหัก (Deductions)</div>
+        <div class="line">
+            <div class="field"><label>ประกันสังคม</label><input id="ss" type="number" min="0" value="0"></div>
+            <div class="field"><label>ภาษี</label><input id="tax" type="number" min="0" value="0"></div>
+        </div>
+        <div id="deductExtraContainer"></div>
+        <div class="line"><button class="btn btn-add btn-add-deduct" type="button" onclick="addDeductRow()">+
+                เพิ่มรายการหักอื่นๆ</button></div>
+
+        <div class="subsection">รายได้สะสม (Accumulated)</div>
+        <div class="line">
+            <div class="field"><label>รายได้สะสม</label><input id="accEarn" type="number" min="0" value="0"></div>
+            <div class="field"><label>ประกันสังคมสะสม</label><input id="accSs" type="number" min="0" value="0"></div>
+        </div>
+
+        <button class="btn btn-calc" onclick="renderPreview()">คำนวณและแสดง</button>
+        <button class="btn btn-pdf" onclick="downloadPDF()">ดาวน์โหลด PDF</button>
+        <button class="btn btn-reset" onclick="resetForm()">รีเซ็ต</button>
+
+        <div id="output" class="output-box"></div>
+    </div>
+
+    <!-- Hidden PDF Template matching the image -->
+    <div id="pdfWrapper">
+        <div id="pdfTemplate">
+            <div class="pdf-header">
+                <div class="pdf-header-logo"><img id="pdfLogo" src="" alt="logo"></div>
+                <div class="pdf-title-group">
+                    <div class="pdf-company-name" id="pdfCompany"></div>
+                    <div class="pdf-slip-title">ใบแจ้งเงินเดือน (PAYSLIP)</div>
+                </div>
+            </div>
+
+            <div class="pdf-emp-info">
+                <div>
+                    <div>รหัสพนักงาน :<span id="pdfEmpId"></span></div>
+                    <div>ชื่อพนักงาน :<span id="pdfEmpName"></span></div>
+                </div>
+                <div style="width: 280px; text-align: right;">
+                    <div>ตำแหน่ง :<span id="pdfPosition"></span></div>
+                    <div>ประจำเดือน :<span id="pdfPeriod"></span></div>
+                </div>
+            </div>
+
+            <table class="pdf-table">
+                <thead>
+                    <tr>
+                        <th>รายได้ (Earnings)</th>
+                        <th>รายการหัก (Deductions)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="border-right: 1px solid #e2e8f0; height: 200px;">
+                            <div class="pdf-row-flex"><span>เงินเดือน :</span><span id="pdfBaseSalary">0.00</span></div>
+                            <div class="pdf-row-flex"><span>ค่าล่วงเวลา (OT) :</span><span id="pdfOt">0.00</span></div>
+                            <div class="pdf-row-flex"><span>ค่าอาหาร :</span><span id="pdfFood">0.00</span></div>
+                            <div id="pdfEarnExtra"></div>
+                        </td>
+                        <td style="height: 200px;">
+                            <div class="pdf-row-flex"><span>ประกันสังคม :</span><span id="pdfSs">0.00</span></div>
+                            <div class="pdf-row-flex"><span>ภาษี :</span><span id="pdfTax">0.00</span></div>
+                            <div id="pdfDeductExtra"></div>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td style="border-right: 1px solid #e2e8f0;">
+                            <div class="pdf-row-flex" style="border-bottom: 0;"><span>รวมรายได้ :</span><span
+                                    id="pdfTotalEarn">0.00</span></div>
+                        </td>
+                        <td>
+                            <div class="pdf-row-flex" style="border-bottom: 0;"><span>รวมรายการหัก :</span><span
+                                    id="pdfTotalDeduct">0.00</span></div>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <table class="pdf-summary-table" style="table-layout: fixed;">
+                    <tr>
+                        <td style="width: 50%;">รายได้สะสม</td>
+                        <td style="width: 50%;">ประกันสังคมสะสม</td>
+                    </tr>
+                    <tr>
+                        <td id="pdfAccEarn">0.00</td>
+                        <td id="pdfAccSs">0.00</td>
+                    </tr>
+                </table>
+
+                <table class="pdf-summary-table">
+                    <tr>
+                        <td colspan="2">เงินรับสุทธิ (Net Pay)</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td colspan="2" id="pdfNet">0.00</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="pdf-signatures">
+                <div style="text-align: center;">
+                    <br><br><br>
+                    <div
+                        style="border-top: 1px solid #94a3b8; padding-top: 8px; width: 180px; margin: 0 auto; margin-bottom: 6px;">
+                        ผู้จ่ายเงิน (Authorized)
+                    </div>
+                </div>
+                <div style="text-align: center;">
+                    <br><br><br>
+                    <div
+                        style="border-top: 1px solid #94a3b8; padding-top: 8px; width: 180px; margin: 0 auto; margin-bottom: 6px;">
+                        ผู้รับเงิน (Employee)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function num(id) { return Number(document.getElementById(id).value) || 0; }
+        function format(n) { return Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+        function toDataURL(url) {
+            return fetch(url).then(r => r.blob()).then(blob => new Promise((res, rej) => {
+                const reader = new FileReader();
+                reader.onloadend = () => res(reader.result);
+                reader.onerror = rej;
+                reader.readAsDataURL(blob);
+            }));
+        }
+
+        function addEarnRow(name = '', amt = 0) {
+            const c = document.getElementById('earnExtraContainer');
+            const row = document.createElement('div'); row.className = 'line';
+            row.innerHTML = `<div class="field"><input class="earn-name" placeholder="ระบุชื่อรายได้" value="${name}"></div><div class="field"><input class="earn-amt" type="number" min="0" value="${amt}" placeholder="จำนวนเงิน"></div><button type="button" class="btn-remove" onclick="removeRow(this)">ลบ</button>`;
+            c.appendChild(row);
+        }
+
+        function addDeductRow(name = '', amt = 0) {
+            const c = document.getElementById('deductExtraContainer');
+            const row = document.createElement('div'); row.className = 'line';
+            row.innerHTML = `<div class="field"><input class="deduct-name" placeholder="ระบุชื่อรายการหัก" value="${name}"></div><div class="field"><input class="deduct-amt" type="number" min="0" value="${amt}" placeholder="จำนวนเงิน"></div><button type="button" class="btn-remove" onclick="removeRow(this)">ลบ</button>`;
+            c.appendChild(row);
+        }
+
+        function removeRow(btn) {
+            btn.closest('.line').remove();
+        }
+
+        function renderPreview() {
+            const company = document.getElementById('companyName').value;
+            const empName = document.getElementById('empName').value || '-';
+            const empId = document.getElementById('empId').value || '-';
+            const position = document.getElementById('position').value || '-';
+            const period = document.getElementById('period').value || '-';
+
+            let earnTotal = num('baseSalary') + num('ot') + num('foodAllowance');
+            let dedTotal = num('ss') + num('tax');
+
+            document.querySelectorAll('.earn-amt').forEach((el) => { earnTotal += Number(el.value) || 0; });
+            document.querySelectorAll('.deduct-amt').forEach((el) => { dedTotal += Number(el.value) || 0; });
+
+            const net = earnTotal - dedTotal;
+            const out = document.getElementById('output');
+            out.style.display = 'block';
+            out.innerHTML = `
+    <strong>พรีวิวยอดเงิน</strong><br>
+    รหัส: ${empId} พนักงาน: ${empName}<br>
+    รวมรายได้: ${format(earnTotal)} บาท<br>
+    รวมหัก: ${format(dedTotal)} บาท<br>
+    เงินรับสุทธิ: ${format(net)} บาท`;
+        }
+
+        async function downloadPDF() {
+            renderPreview();
+
+            // Generate Data URL for Logo to avoid Canvas Taint issue
+            try {
+                const logoSrc = document.getElementById('companyLogo').src;
+                const dataUrl = await toDataURL(logoSrc);
+                document.getElementById('pdfLogo').src = dataUrl;
+            } catch (e) {
+                console.warn('Could not load logo as data URL', e);
+                document.getElementById('pdfLogo').src = document.getElementById('companyLogo').src;
+            }
+
+            // Populate PDF Template fields
+            let cName = document.getElementById('companyName').value || 'บริษัท';
+            if (cName.includes(' (')) {
+                const parts = cName.split(' (');
+                document.getElementById('pdfCompany').innerHTML =
+                    `<span class="pdf-company-main">${parts[0]}</span>` +
+                    `<span class="pdf-company-sub">(${parts[1]}</span>`;
+            } else {
+                document.getElementById('pdfCompany').innerHTML = `<span class="pdf-company-main">${cName}</span>`;
+            }
+            document.getElementById('pdfEmpId').textContent = document.getElementById('empId').value || '-';
+            document.getElementById('pdfEmpName').textContent = document.getElementById('empName').value || '-';
+            document.getElementById('pdfPosition').textContent = document.getElementById('position').value || '-';
+            document.getElementById('pdfPeriod').textContent = document.getElementById('period').value || '-';
+
+            document.getElementById('pdfBaseSalary').textContent = format(num('baseSalary'));
+            document.getElementById('pdfOt').textContent = format(num('ot'));
+            document.getElementById('pdfFood').textContent = format(num('foodAllowance'));
+
+            let pdfEarnExtraHTML = '';
+            document.querySelectorAll('.earn-name').forEach((n, i) => {
+                const amt = Number(document.querySelectorAll('.earn-amt')[i].value) || 0;
+                if (n.value) {
+                    pdfEarnExtraHTML += `<div class="pdf-row-flex"><span>${n.value} :</span><span>${format(amt)}</span></div>`;
+                }
+            });
+            document.getElementById('pdfEarnExtra').innerHTML = pdfEarnExtraHTML;
+
+            document.getElementById('pdfSs').textContent = format(num('ss'));
+            document.getElementById('pdfTax').textContent = format(num('tax'));
+
+            let pdfDeductExtraHTML = '';
+            document.querySelectorAll('.deduct-name').forEach((n, i) => {
+                const amt = Number(document.querySelectorAll('.deduct-amt')[i].value) || 0;
+                if (n.value) {
+                    pdfDeductExtraHTML += `<div class="pdf-row-flex"><span>${n.value} :</span><span>${format(amt)}</span></div>`;
+                }
+            });
+            document.getElementById('pdfDeductExtra').innerHTML = pdfDeductExtraHTML;
+
+            let earnTotal = num('baseSalary') + num('ot') + num('foodAllowance');
+            document.querySelectorAll('.earn-amt').forEach(el => earnTotal += Number(el.value) || 0);
+
+            let dedTotal = num('ss') + num('tax');
+            document.querySelectorAll('.deduct-amt').forEach(el => dedTotal += Number(el.value) || 0);
+
+            const net = earnTotal - dedTotal;
+
+            document.getElementById('pdfTotalEarn').textContent = format(earnTotal);
+            document.getElementById('pdfTotalDeduct').textContent = format(dedTotal);
+            document.getElementById('pdfAccEarn').textContent = format(num('accEarn'));
+            document.getElementById('pdfAccSs').textContent = format(num('accSs'));
+            document.getElementById('pdfNet').textContent = format(net);
+
+            // Generate Canvas
+            const template = document.getElementById('pdfTemplate');
+
+            // Allow template to render fully
+            await new Promise(r => setTimeout(r, 100));
+
+            try {
+                const canvas = await html2canvas(template, {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true
+                });
+                const imgData = canvas.toDataURL('image/png');
+
+                const { jsPDF } = window.jspdf;
+                // A4 is 210x297 mm
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+
+                // Calculate dimensions to fit A4 width nicely with margins
+                const margin = 10;
+                const pdfWidth = pdf.internal.pageSize.getWidth() - (margin * 2);
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+                // Add the image to the PDF
+                pdf.addImage(imgData, 'PNG', margin, margin, pdfWidth, pdfHeight);
+
+                // Save the PDF
+                const empIdForFile = document.getElementById('empId').value || '';
+                const empNameForFile = document.getElementById('empName').value || 'Payslip';
+                const fileSuffix = empIdForFile ? `${empIdForFile}_${empNameForFile}` : empNameForFile;
+                pdf.save(`Payslip_${fileSuffix}.pdf`);
+
+            } catch (err) {
+                console.error("Error generating PDF", err);
+                alert("เกิดข้อผิดพลาดในการสร้าง PDF");
+            }
+        }
+
+        function resetForm() {
+            document.querySelectorAll('input').forEach(el => {
+                if (el.type === 'number') el.value = 0;
+                else el.value = '';
+            });
+            document.getElementById('companyName').value = 'บริษัท ซันเจียงเมดิคอลไฟเบอร์ (ประเทศไทย) จำกัด';
+            document.getElementById('output').style.display = 'none';
+            document.getElementById('output').innerHTML = '';
+            document.getElementById('earnExtraContainer').innerHTML = '';
+            document.getElementById('deductExtraContainer').innerHTML = '';
+            addEarnRow();
+            addDeductRow();
+        }
+        window.onload = () => { addEarnRow(); addDeductRow(); };
+    </script>
+</body>
+
+</html>
