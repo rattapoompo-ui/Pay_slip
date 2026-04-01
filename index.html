@@ -367,7 +367,6 @@
         .pdf-title-group {
             flex: 1;
             text-align: right;
-            /* Right aligned modern headers often look great */
             position: relative;
         }
 
@@ -377,26 +376,29 @@
         }
 
         .pdf-company-name {
-            margin: 0 0 8px 0;
-            line-height: 1.25;
+            margin: 0 0 15px 0;
+            line-height: 1.2;
+            text-align: right;
+            width: 100%;
         }
 
-        .pdf-company-main {
-            font-size: 26px;
-            /* Adjusted to fit one line */
-            font-weight: 800;
-            color: #0d47a1;
+        .pdf-company-thai {
+            font-size: 20px;
+            font-weight: 900;
+            color: #28288d;
             display: block;
-            margin-bottom: 2px;
+            margin-bottom: 0px;
+            font-family: inherit;
+            letter-spacing: -0.3px;
+        }
+
+        .pdf-company-eng {
+            font-size: 18px;
+            font-weight: 900;
+            color: #28288d;
+            display: block;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .pdf-company-sub {
-            font-size: 16px;
-            font-weight: 600;
-            color: #64748b;
-            display: block;
+            letter-spacing: 0.4px;
         }
 
         .pdf-slip-title {
@@ -405,8 +407,8 @@
             color: #fff;
             font-size: 18px;
             font-weight: 700;
-            margin: 12px 0 0 0;
-            padding: 6px 20px;
+            margin: 5px 0 0 0;
+            padding: 6px 30px;
             border-radius: 6px;
             letter-spacing: 1px;
             box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
@@ -439,10 +441,11 @@
 
         .pdf-emp-info>div {
             line-height: 1.6;
+            font-weight: 700;
         }
 
         .pdf-emp-info span {
-            font-weight: 700;
+            font-weight: 400;
             color: #0f172a;
             margin-left: 8px;
         }
@@ -490,6 +493,10 @@
             border-top: 2px solid #cbd5e1;
         }
 
+        .pdf-table tfoot .pdf-row-flex span:last-child {
+            font-weight: 700;
+        }
+
         .pdf-row-flex {
             display: flex;
             justify-content: space-between;
@@ -505,7 +512,7 @@
         }
 
         .pdf-row-flex span:last-child {
-            font-weight: 600;
+            font-weight: 400;
             color: #0f172a;
         }
 
@@ -581,8 +588,10 @@
         <h1>ใบแจ้งเงินเดือน (Payslip)</h1>
 
         <div class="line">
-            <div class="field"><label>ชื่อบริษัท</label><input id="companyName"
+            <div class="field"><label>ชื่อบริษัท (ภาษาไทย)</label><input id="companyNameThai"
                     value="บริษัท ซันเจียงเคมิคอลไฟเบอร์ (ประเทศไทย) จำกัด"></div>
+            <div class="field"><label>ชื่อบริษัท (English)</label><input id="companyNameEng"
+                    value="SANJIANG CHEMICAL FIBER (THAILAND) CO., LTD."></div>
         </div>
         <div class="line">
             <div class="field"><label>รหัสพนักงาน</label><input id="empId" placeholder="เช่น EMP01"></div>
@@ -593,7 +602,7 @@
             <div class="field"><label>ประจำเดือน</label><input id="period" placeholder="เช่น มีนาคม 2569"></div>
         </div>
 
-        <div class="subsection">รายได้ (Earnings)</div>
+        <div class="subsection">รายได้ (Earnings )</div>
         <div class="line">
             <div class="field"><label>เงินเดือน</label><input id="baseSalary" type="number" min="0" value="0"></div>
             <div class="field"><label>ค่าล่วงเวลา (OT)</label><input id="ot" type="number" min="0" value="0"></div>
@@ -630,8 +639,13 @@
         <div id="pdfTemplate">
             <div class="pdf-header">
                 <div class="pdf-header-logo"><img id="pdfLogo" src="" alt="logo"></div>
-                <div class="pdf-title-group">
-                    <div class="pdf-company-name" id="pdfCompany"></div>
+                <div class="pdf-title-group" id="pdfCompany">
+                    <div class="pdf-company-name">
+                        <span class="pdf-company-thai" id="pdfCompanyThai">บริษัท ซันเจียงเคมิคอลไฟเบอร์(ประเทศไทย)
+                            จำกัด</span>
+                        <span class="pdf-company-eng" id="pdfCompanyEng">SANJIANG CHEMICAL FIBER(THAILAND) CO.,
+                            LTD.</span>
+                    </div>
                     <div class="pdf-slip-title">ใบแจ้งเงินเดือน (PAYSLIP)</div>
                 </div>
             </div>
@@ -766,7 +780,8 @@
         }
 
         function renderPreview() {
-            const company = document.getElementById('companyName').value;
+            const companyThai = document.getElementById('companyNameThai').value || '';
+            const companyEng = document.getElementById('companyNameEng').value || '';
             const empName = document.getElementById('empName').value || '-';
             const empId = document.getElementById('empId').value || '-';
             const position = document.getElementById('position').value || '-';
@@ -783,6 +798,7 @@
             out.style.display = 'block';
             out.innerHTML = `
     <strong>พรีวิวยอดเงิน</strong><br>
+    บริษัท: ${companyThai}<br>
     รหัส: ${empId} พนักงาน: ${empName}<br>
     รวมรายได้: ${format(earnTotal)} บาท<br>
     รวมหัก: ${format(dedTotal)} บาท<br>
@@ -792,26 +808,26 @@
         async function downloadPDF() {
             renderPreview();
 
-            // Generate Data URL for Logo to avoid Canvas Taint issue
+            // Try to load logo as Data URL (avoids Canvas Taint)
+            const pdfLogoImg = document.getElementById('pdfLogo');
             try {
                 const logoSrc = document.getElementById('companyLogo').src;
-                const dataUrl = await toDataURL(logoSrc);
-                document.getElementById('pdfLogo').src = dataUrl;
+                if (logoSrc && logoSrc.startsWith('http')) {
+                    const dataUrl = await toDataURL(logoSrc);
+                    pdfLogoImg.src = dataUrl;
+                    pdfLogoImg.style.display = 'block';
+                } else {
+                    pdfLogoImg.style.display = 'none';
+                }
             } catch (e) {
-                console.warn('Could not load logo as data URL', e);
-                document.getElementById('pdfLogo').src = document.getElementById('companyLogo').src;
+                console.warn('CORS restrict: Using logo without DataURL might block download. Skipping logo.', e);
+                pdfLogoImg.style.display = 'none';
+                pdfLogoImg.src = '';
             }
 
             // Populate PDF Template fields
-            let cName = document.getElementById('companyName').value || 'บริษัท';
-            if (cName.includes(' (')) {
-                const parts = cName.split(' (');
-                document.getElementById('pdfCompany').innerHTML =
-                    `<span class="pdf-company-main">${parts[0]}</span>` +
-                    `<span class="pdf-company-sub">(${parts[1]}</span>`;
-            } else {
-                document.getElementById('pdfCompany').innerHTML = `<span class="pdf-company-main">${cName}</span>`;
-            }
+            document.getElementById('pdfCompanyThai').textContent = document.getElementById('companyNameThai').value || '';
+            document.getElementById('pdfCompanyEng').textContent = document.getElementById('companyNameEng').value || '';
             document.getElementById('pdfEmpId').textContent = document.getElementById('empId').value || '-';
             document.getElementById('pdfEmpName').textContent = document.getElementById('empName').value || '-';
             document.getElementById('pdfPosition').textContent = document.getElementById('position').value || '-';
@@ -906,7 +922,8 @@
                 if (el.type === 'number') el.value = 0;
                 else el.value = '';
             });
-            document.getElementById('companyName').value = 'บริษัท ซันเจียงเมดิคอลไฟเบอร์ (ประเทศไทย) จำกัด';
+            document.getElementById('companyNameThai').value = 'บริษัท ซันเจียงเคมิคอลไฟเบอร์(ประเทศไทย) จำกัด';
+            document.getElementById('companyNameEng').value = 'SANJIANG CHEMICAL FIBER(THAILAND) CO., LTD.';
             document.getElementById('output').style.display = 'none';
             document.getElementById('output').innerHTML = '';
             document.getElementById('earnExtraContainer').innerHTML = '';
